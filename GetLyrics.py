@@ -1,11 +1,12 @@
 from bs4 import BeautifulSoup
 from urlparse import urljoin
 from urllib import unquote
+from os.path import join
 import requests
 
 kBaseUrl = "http://tmbw.net"
 
-kOutputDir = "."
+kOutputDir = "data"
 
 
 def Log(s):
@@ -89,11 +90,10 @@ def ProcessTrack(albumName, trackName, url):
    soup = GetSoup(url)
    lyrics = soup.find(attrs={"class": "lyrics-table"})
    stanzas = lyrics.find_all("p")
-   fileName = MakeFilename(albumName, trackName)
+   fileName = join(kOutputDir, MakeFilename(albumName, trackName))
    Log("  {}".format(fileName))
    with open(fileName, "wt") as f:
       lyric = u"\n".join([stanza.text for stanza in stanzas]).encode("UTF-8")
-      print lyric
       f.write(lyric)
 
 if __name__ == "__main__":

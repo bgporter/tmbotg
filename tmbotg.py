@@ -39,6 +39,14 @@ class SettingsFileError(Exception):
    def __str__(self):
       return self.msg
 
+class LyricsFileError(Exception):
+   def __init__(self, msg):
+      self.msg = msg
+
+   def __str__(self):
+      return self.msg
+
+
 class Settings(object):
    '''
       class to persist our app's settings in a json file.
@@ -159,6 +167,10 @@ class TmBot(object):
          raise NoLyricError()
 
       files = glob(self.settings.lyricFilePath)
+      if not files:
+         # there aren't any lyrics files to use -- tell them to run GetLyrics
+         raise LyricsFileError("Please run GetLyrics.py to fetch lyric data first.")
+
       fName = choice(files)
       album, track = ParseFilename(fName)
       stanza = ""
@@ -194,6 +206,6 @@ if __name__ == "__main__":
    try:
       bot = TmBot(argDict)
       bot.Run()
-   except SettingsFileError as e:
+   except (SettingsFileError, LyricsFileError) as e:
       print str(e)
 
