@@ -11,4 +11,9 @@ Utility using requests and BeautifulSoup to scrape the lyrics database that's at
 
 Twitter bot app (written using Twython) that assumes it will be called once a minute by a cron job. Approximately once an hour, it should generate a new tweet.
 
-**TODO:** add the ability to process mentions that contain a '?' by replying to that user with a chunk of lyrics.
+**TODO:** 
+
+- add logging
+- wrap the update_status call in a try block so we can catch (and log) TwythonError exceptions (e.g. on a duplicate status update)
+- add the ability to process mentions that contain a '?' by replying to that user with a chunk of lyrics.
+

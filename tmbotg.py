@@ -12,7 +12,6 @@ from twython import Twython
 import os.path
 import json
 
-import Config
 
 
 # if we're started without a config file, we create a default/empty 
@@ -32,7 +31,6 @@ file for you. Please edit it, adding the correct/desired values for each
 setting as is appropriate.
 '''
 
-twitter = Twython(Config.kAppKey, Config.kSecret, Config.kMyToken, Config.kMySecret)
 
 class SettingsFileError(Exception):
    def __init__(self, msg):
