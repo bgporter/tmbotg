@@ -110,7 +110,7 @@ class TmBot(object):
 
    def __init__(self, argDict=None):
       if not argDict:
-         argDict = { 'debug' : False, "force": False, 'settingsFile' : "tmbotg.json"}
+         argDict = { 'debug' : False, "force": False, 'botPath' : "."}
       self.__dict__.update(argDict)
 
       # we build a list of dicts containing status (and whatever other args 
@@ -119,7 +119,7 @@ class TmBot(object):
       self.tweets = []
 
 
-      self.settings = Settings(self.settingsFile)
+      self.settings = Settings(os.path.join(self.botPath, "tmbotg.json"))
       s = self.settings
       self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
 
@@ -167,7 +167,7 @@ class TmBot(object):
       if 0 == count:
          raise NoLyricError()
 
-      files = glob(self.settings.lyricFilePath)
+      files = glob(os.path.join(self.botPath, self.settings.lyricFilePath))
       if not files:
          # there aren't any lyrics files to use -- tell them to run GetLyrics
          raise LyricsFileError("Please run GetLyrics.py to fetch lyric data first.")
@@ -205,8 +205,8 @@ if __name__ == "__main__":
    argDict = vars(args)
 
 
-   settingsFile = os.path.join(os.path.split(__file__)[0], "tmbotg.json")   
-   argDict['settingsFile'] = settingsFile
+   botPath = os.path.split(__file__)[0]
+   argDict['botPath'] = botPath
 
    try:
       bot = TmBot(argDict)
