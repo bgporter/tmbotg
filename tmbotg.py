@@ -205,7 +205,7 @@ if __name__ == "__main__":
    argDict = vars(args)
 
 
-   settingsFile = os.path.join(os.path.split(__file__), "tmbotg.json")   
+   settingsFile = os.path.join(os.path.split(__file__)[0], "tmbotg.json")   
    argDict['settingsFile'] = settingsFile
 
    try:
