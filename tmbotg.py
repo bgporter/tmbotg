@@ -110,7 +110,7 @@ class TmBot(object):
 
    def __init__(self, argDict=None):
       if not argDict:
-         argDict = { 'debug' : False, "force": False}
+         argDict = { 'debug' : False, "force": False, 'settingsFile' : "tmbotg.json"}
       self.__dict__.update(argDict)
 
       # we build a list of dicts containing status (and whatever other args 
@@ -118,7 +118,8 @@ class TmBot(object):
       # probably 'in_reply-to_status_id' when we're replying to someone.)
       self.tweets = []
 
-      self.settings = Settings("tmbotg.json")
+
+      self.settings = Settings(self.settingsFile)
       s = self.settings
       self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
 
@@ -202,6 +203,10 @@ if __name__ == "__main__":
       help="force operation now instead of waiting for randomness")
    args = parser.parse_args()
    argDict = vars(args)
+
+
+   settingsFile = os.path.join(os.path.split(__file__), "tmbotg.json")   
+   argDict['settingsFile'] = settingsFile
 
    try:
       bot = TmBot(argDict)
