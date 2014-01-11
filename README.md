@@ -3,6 +3,10 @@
 A little project that randomly tweets out fragments of lyrics from They Might Be Giants 
 songs. 
 
+
+<blockquote class="twitter-tweet" lang="en"><p>Minimum Wage!  HYAH!</p>&mdash; tmbotg (@tmbotg) <a href="https://twitter.com/tmbotg/statuses/421454171020492800">January 10, 2014</a></blockquote>
+<script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 ### Colophon & Thanks
 
 - Obviously, thanks to They Might Be Giants, both for writing this stuff in the first place, and as importantly for this project not being all cease-and-desisty to this kind of fan project. This project is not officially affiliated with the band.
@@ -24,8 +28,8 @@ Twitter bot app (written using Twython) that assumes it will be called once a mi
 
 **TODO:** 
 
-- add logging
-- Add a mode that generates (daily?) stats (#posts, #followers, #favs, #retweets)
-- wrap the update_status call in a try block so we can catch (and log) TwythonError exceptions (e.g. on a duplicate status update)
-- add the ability to process mentions that contain a '?' by replying to that user with a chunk of lyrics.
+- [ ] add logging
+- [ ] Add a mode that generates (daily?) stats (#posts, #followers, #favs, #retweets)
+- [ ] wrap the update_status call in a try block so we can catch (and log) TwythonError exceptions (e.g. on a duplicate status update)
+- [ ] add the ability to process mentions that contain a '?' by replying to that user with a chunk of lyrics.
 
