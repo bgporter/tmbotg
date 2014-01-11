@@ -135,7 +135,10 @@ class TmBot(object):
    def CreateUpdate(self):
       if (random() < self.settings.tweetProbability) or self.force:
          try:
-            album, track, msg = self.GetLyric(120)
+            # occasionally force some short(er) updates so they're not all
+            # paragraph-length..
+            maxLen = choice([120, 120, 120, 120, 100, 100, 100, 80, 80, 40])
+            album, track, msg = self.GetLyric(maxLen)
             self.tweets.append({'status' : msg})
          except NoLyricError:
             # we should log this.
