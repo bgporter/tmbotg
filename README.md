@@ -10,7 +10,7 @@ songs.
 ### Colophon & Thanks
 
 - Obviously, thanks to They Might Be Giants, both for writing this stuff in the first place, and as importantly for this project not being all cease-and-desisty to this kind of fan project. This project is not officially affiliated with the band.
-- All the editors/contributors to 'TMBW: The They Might Be Giants KNowledge Base' (http://www.tmbw.net) for maintaining full lyrics in a format that was realtively easy for me to extract.
+- All the editors/contributors to 'TMBW: The They Might Be Giants Knowledge Base' (http://www.tmbw.net) for maintaining full lyrics in a format that was realtively easy for me to extract.
 
 **Python modules**
 
