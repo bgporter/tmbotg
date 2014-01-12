@@ -7,10 +7,11 @@ from glob import glob
 from pprint import pprint
 from random import choice
 from random import random
+from time import time
 from twython import Twython
 
-import os.path
 import json
+import os.path
 
 
 
@@ -23,6 +24,7 @@ kDefaultConfigDict = {
    "accessTokenSecret"  : "!!! your access token secret",
    "lyricFilePath"      : "*.lyric",
    "tweetProbability"   : 24.0 / 1440,
+   "minimumSpacing"     : 60*60,
 }
 
 kSettingsFileErrorMsg = '''\
@@ -56,32 +58,43 @@ class Settings(object):
          self._settingsFile = settingsFile
          with open(settingsFile, "rt") as f:
             self._settings = json.loads(f.read())
+            self._isDirty = False
       except IOError:
          # can't open the settings file. Warn the user & create a blank file.
          self._settings = kDefaultConfigDict
+         self._isDirty = True
          self.Write()
          raise SettingsFileError(kSettingsFileErrorMsg.format(settingsFile))
 
    def Write(self):
       try:
-         with open(self._settingsFile, "wt") as f:
-            f.write(json.dumps(self._settings, indent=3, 
-               separators=(',', ': ') ))
+         if self._isDirty: 
+            with open(self._settingsFile, "wt") as f:
+               f.write(json.dumps(self._settings, indent=3, 
+                  separators=(',', ': ') ))
+            self._isDirty = False
       except IOError, e:
          print "Error writing settings file: {0}".format(str(e))
          raise SettingsFileError()
 
    def __getitem__(self, key):
-      ''' get an item from settings as if this were a dict. '''
-      return self._settings[key]
+      ''' get an item from settings as if this were a dict. 
+         If there's nothing at that key, returns None instead of 
+         throwing an exception.
+      '''
+      return self._settings.get(key, None)
 
    def __getattr__(self, key):
-      ''' ...or, get a thing as an attribute using dot notation '''
-      return self._settings[key]
+      ''' ...or, get a thing as an attribute using dot notation 
+         If there's nothing at that key, returns None instead of 
+         throwing an exception.
+         '''
+      return self._settings.get(key, None)
 
    def __setattr__(self, key, val):
       if not key.startswith('_'):
          self._settings[key] = val
+         self._isDirty = True
       else:
          # we need to prevent recursion!
          super(Settings, self).__setattr__(key, val)   
@@ -133,13 +146,33 @@ class TmBot(object):
             self.twitter.update_status(**msg)
 
    def CreateUpdate(self):
-      if (random() < self.settings.tweetProbability) or self.force:
+      '''
+         Called everytime the bot is Run(). 
+         If a random number is less than the probability that we should generate
+         a tweet (or if we're told to force one), we look into the lyrics database
+         and (we hope) append a status update to the list of tweets.
+
+         1/11/14: Added a configurable 'minimumSpacing' variable to prevent us from 
+         posting an update too frequently. Starting at an hour (60*60)
+
+      '''
+      doUpdate = False
+      if random() < self.settings.tweetProbability:
+         last = self.settings.lastUpdate or 0
+         now = time()
+         if now - last > self.settings.minimumSpacing or (60*60):
+            doUpdate = True
+      if self.force:
+         doUpdate = True
+
+      if doUpdate:
          try:
             # occasionally force some short(er) updates so they're not all
             # paragraph-length..
             maxLen = choice([120, 120, 120, 120, 100, 100, 100, 80, 80, 40])
             album, track, msg = self.GetLyric(maxLen)
             self.tweets.append({'status' : msg})
+            self.settings.lastUpdate = int(time())
          except NoLyricError:
             # we should log this.
             pass
@@ -151,6 +184,8 @@ class TmBot(object):
       self.CreateUpdate()
       self.HandleMentions()
       self.SendTweets()
+      # if anything we did changed the settings, make sure those changes get written out.
+      self.settings.Write()
 
 
    def GetLyric(self, maxLen, count=10):
