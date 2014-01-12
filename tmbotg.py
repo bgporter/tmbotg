@@ -153,14 +153,21 @@ class TmBot(object):
          and (we hope) append a status update to the list of tweets.
 
          1/11/14: Added a configurable 'minimumSpacing' variable to prevent us from 
-         posting an update too frequently. Starting at an hour (60*60)
+         posting an update too frequently. Starting at an hour ()
 
       '''
       doUpdate = False
       if random() < self.settings.tweetProbability:
          last = self.settings.lastUpdate or 0
          now = time()
-         if now - last > self.settings.minimumSpacing or (60*60):
+         requiredSpace = self.settings.minimumSpacing
+         if not requiredSpace:
+            # no entry in the file -- let's create one. Defaut = 1 hour.
+            requiredSpace = 60*60
+            self.settings.minimumSpacing = requiredSpace
+
+         if now - last > requiredSpace:
+            # Our last tweet wasn't long enough ago. Stay quiet this time.
             doUpdate = True
       if self.force:
          doUpdate = True
@@ -207,7 +214,7 @@ class TmBot(object):
 
       files = glob(os.path.join(self.botPath, self.settings.lyricFilePath))
       if not files:
-         # there aren't any lyrics files to use -- tell them to run GetLyrics
+         # there aren't any lyrics files to use -- tell them to  GetLyrics
          raise LyricsFileError("Please run GetLyrics.py to fetch lyric data first.")
 
       fName = choice(files)
