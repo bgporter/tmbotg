@@ -9,8 +9,8 @@ songs.
 
 ### Colophon & Thanks
 
-- Obviously, thanks to They Might Be Giants, both for writing this stuff in the first place, and as importantly for this project not being all cease-and-desisty to this kind of fan project. This project is not officially affiliated with the band.
-- All the editors/contributors to 'TMBW: The They Might Be Giants Knowledge Base' (http://www.tmbw.net) for maintaining full lyrics in a format that was realtively easy for me to extract.
+- Obviously, thanks to They Might Be Giants, both for writing this stuff in the first place, and (as importantly for this project) not being all cease-and-desisty to this kind of fan project. This project is not officially affiliated with the band.
+- All the editors/contributors to 'TMBW: The They Might Be Giants Knowledge Base' (http://www.tmbw.net) for maintaining full lyrics in a format that was relatively easy for me to extract.
 
 **Python modules**
 
@@ -32,4 +32,5 @@ Twitter bot app (written using Twython) that assumes it will be called once a mi
 - [ ] Add a mode that generates (daily?) stats (#posts, #followers, #favs, #retweets)
 - [ ] wrap the update_status call in a try block so we can catch (and log) TwythonError exceptions (e.g. on a duplicate status update)
 - [ ] add the ability to process mentions that contain a '?' by replying to that user with a chunk of lyrics.
+- [x] Track the time of the most recent tweet & refuse to twwet again for some period of time after that (rate-limit to not feel spammy. Max once an hour? )
 
