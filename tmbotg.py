@@ -61,7 +61,8 @@ class Settings(object):
             self._isDirty = False
       except IOError:
          # can't open the settings file. Warn the user & create a blank file.
-         self._settings = kDefaultConfigDict
+         # They'll need to edit that file and re-start this program.
+         self._settings = kDefaultConfigDict.copy()
          self._isDirty = True
          self.Write()
          raise SettingsFileError(kSettingsFileErrorMsg.format(settingsFile))
@@ -141,7 +142,7 @@ class TmBot(object):
       '''
       for msg in self.tweets:
          if self.debug:
-            print msg['status']
+            print msg['status'].encode("UTF-8")
          else:
             self.twitter.update_status(**msg)
 
@@ -185,12 +186,42 @@ class TmBot(object):
             pass
 
    def HandleMentions(self):
-      pass
+      '''
+         Get all the tweets that mention us since the last time we ran and process each
+         one.
+         For now, any time we're mentioned in someone's tweet, we favorite it.
+      '''
+      mentions = self.twitter.get_mentions_timeline(since_id=self.settings.lastMentionId)
+      if mentions:
+         # Remember the most recent tweet id, which will be the one at index zero.
+         self.settings.lastMentionId = mentions[0]['id_str']
+         for mention in mentions:
+            who = mention['user']['screen_name']
+            text = mention['text']
+            theId = mention['id_str']
+
+            # we favorite every mention that we see
+            if self.debug:
+               print "Faving tweet {0} by {1}:\n {2}".format(theId, who, text.encode("utf-8"))
+            else:
+               self.twitter.create_favorite(id=theId)
+            
+            # if they asked us a question, reply to them.   
+            if "?" in text:
+               # create a reply to them. 
+               maxReplyLen = 120 - len(who)
+               album, track, msg = self.GetLyric(maxReplyLen)
+               # get just the first line
+               msg = msg.split('\n')[0]
+               replyMsg = "@{0} {1}".format(who, msg)
+               self.tweets.append({'status': replyMsg, "in_reply_to_status_id" : theId})
+
 
    def Run(self):
       self.CreateUpdate()
       self.HandleMentions()
       self.SendTweets()
+
       # if anything we did changed the settings, make sure those changes get written out.
       self.settings.Write()
 
