@@ -32,6 +32,7 @@ Twitter bot app (written using Twython) that assumes it will be called once a mi
 - [ ] add logging
 - [ ] Add a mode that generates (daily?) stats (#posts, #followers, #favs, #retweets)
 - [ ] wrap the update_status call in a try block so we can catch (and log) TwythonError exceptions (e.g. on a duplicate status update)
-- [ ] add the ability to process mentions that contain a '?' by replying to that user with a chunk of lyrics.
+- [x] add the ability to process mentions that contain a '?' by replying to that user with a chunk of lyrics.
+- [x] Favorite any post that mentions us.
 - [x] Track the time of the most recent tweet & refuse to twwet again for some period of time after that (rate-limit to not feel spammy. Max once an hour? )
 
