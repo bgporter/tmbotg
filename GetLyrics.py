@@ -98,3 +98,5 @@ def ProcessTrack(albumName, trackName, url):
 
 if __name__ == "__main__":
    ProcessDiscography("wiki/Discography/Studio_Albums")
+   ProcessDiscography("wiki/Discography/John_Linnell")
+   ProcessDiscography("wiki/Discography/John_Flansburgh")
