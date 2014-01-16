@@ -28,6 +28,7 @@ Twitter bot app (written using Twython) that assumes it will be called once a mi
 
 **TODO:** 
 
+- [ ] occasionally also use tweet contents to perform google image searches; include links in the tweet.
 - [ ] add logging
 - [ ] Add a mode that generates (daily?) stats (#posts, #followers, #favs, #retweets)
 - [ ] wrap the update_status call in a try block so we can catch (and log) TwythonError exceptions (e.g. on a duplicate status update)
