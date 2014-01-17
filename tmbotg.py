@@ -51,7 +51,13 @@ class LyricsFileError(Exception):
 
 class Settings(object):
    '''
-      class to persist our app's settings in a json file.
+      A class to persist our app's settings in a json file. We can access any 
+      of the of the values in the settings either as
+      mySettings.attribute 
+      or 
+      mySettings['attribute']
+
+      We separate
    '''
    def __init__(self, settingsFile):
       try:
@@ -125,6 +131,8 @@ class TmBot(object):
    def __init__(self, argDict=None):
       if not argDict:
          argDict = { 'debug' : False, "force": False, 'botPath' : "."}
+      # update this object's internal dict with the dict of args that was passed
+      # in so we can access those values as attributes.   
       self.__dict__.update(argDict)
 
       # we build a list of dicts containing status (and whatever other args 
@@ -161,9 +169,12 @@ class TmBot(object):
       if random() < self.settings.tweetProbability:
          last = self.settings.lastUpdate or 0
          now = time()
+         # Make sure that we're not tweeting too frequently. Default is to enforce 
+         # a 1-hour gap between tweets (configurable using the 'minimumSpacing' key
+         # in the config file, providing a number of minutes we must remain silent.)
          requiredSpace = self.settings.minimumSpacing
          if not requiredSpace:
-            # no entry in the file -- let's create one. Defaut = 1 hour.
+            # no entry in the file -- let's create one. Default = 1 hour.
             requiredSpace = 60*60
             self.settings.minimumSpacing = requiredSpace
 
@@ -175,21 +186,22 @@ class TmBot(object):
 
       if doUpdate:
          try:
-            # occasionally force some short(er) updates so they're not all
-            # paragraph-length..
+            # Occasionally force some short(er) updates so they're not all
+            # paragraph-length.. (these values arbitrarily chosen)
             maxLen = choice([120, 120, 120, 120, 100, 100, 100, 80, 80, 40])
             album, track, msg = self.GetLyric(maxLen)
             self.tweets.append({'status' : msg})
             self.settings.lastUpdate = int(time())
          except NoLyricError:
-            # we should log this.
+            # !!! TODO: we should log this.
             pass
 
    def HandleMentions(self):
       '''
          Get all the tweets that mention us since the last time we ran and process each
          one.
-         For now, any time we're mentioned in someone's tweet, we favorite it.
+         Any time we're mentioned in someone's tweet, we favorite it. If they ask 
+         us a question, we reply to them.
       '''
       mentions = self.twitter.get_mentions_timeline(since_id=self.settings.lastMentionId)
       if mentions:
@@ -213,6 +225,8 @@ class TmBot(object):
                album, track, msg = self.GetLyric(maxReplyLen)
                # get just the first line
                msg = msg.split('\n')[0]
+               # In order to post a reply, you need to be sure to include their username
+               # in the body of the tweet.
                replyMsg = "@{0} {1}".format(who, msg)
                self.tweets.append({'status': replyMsg, "in_reply_to_status_id" : theId})
 
@@ -278,9 +292,12 @@ if __name__ == "__main__":
    parser.add_argument("--force", action='store_true', 
       help="force operation now instead of waiting for randomness")
    args = parser.parse_args()
+   # convert the object returned from parse_args() to a plain old dict
    argDict = vars(args)
 
 
+   # Find the path where this source file is being loaded from -- we use
+   # this when resolving relative paths (e.g., to the data/ directory)
    botPath = os.path.split(__file__)[0]
    argDict['botPath'] = botPath
 
@@ -288,5 +305,6 @@ if __name__ == "__main__":
       bot = TmBot(argDict)
       bot.Run()
    except (SettingsFileError, LyricsFileError) as e:
+      # !!! TODO: Write this into a log file (also)
       print str(e)
 
