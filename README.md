@@ -26,6 +26,10 @@ Utility using Requests and BeautifulSoup to scrape the lyrics database that's at
 
 Twitter bot app (written using Twython) that assumes it will be called once a minute by a cron job. Approximately once an hour (depending on configuration data), it should generate a new tweet.
 
+I've also written a post on my work blog about this code that may be of interest: 
+
+http://www.artandlogic.com/blog/2014/01/this-might-be-a-twitterbot/
+
 **TODO:** 
 
 - [ ] occasionally also use tweet contents to perform google image searches; include links in the tweet.
