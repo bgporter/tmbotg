@@ -145,6 +145,25 @@ class TmBot(object):
       s = self.settings
       self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
 
+   def Log(self, eventType, dataList):
+      '''
+         Create an entry in the log file. Each entry will look like:
+         timestamp\tevent\tdata1\tdata2 <etc>\n
+         where:
+         timestamp = integer seconds since the UNIX epoch
+         event = string identifying the event
+         data1..n = individual data fields, as appropriate for each event type.
+      '''
+      now = int(time())
+      fileName = self.settings.logFile
+      if not fileName:
+         fileName = "log.txt"
+         self.settings.fileName = fileName
+      with open(fileName, "a+t") as f:
+         f.write("{0}\t{1}\t".format(now, eventType))
+         f.write("\t".join(dataList))
+         f.write("\n")
+
    def SendTweets(self):
       ''' send each of the status updates that are collected in self.tweets 
       '''
@@ -192,8 +211,10 @@ class TmBot(object):
             album, track, msg = self.GetLyric(maxLen)
             self.tweets.append({'status' : msg})
             self.settings.lastUpdate = int(time())
+            # we'll log album name, track name, number of lines, number of characters
+            self.Log("Tweet", [album, track, str(1 + msg.count("\n")), str(len(msg))])
          except NoLyricError:
-            # !!! TODO: we should log this.
+            self.Log("NoLyric", [])
             pass
 
    def HandleMentions(self):
