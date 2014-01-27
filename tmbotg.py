@@ -155,10 +155,10 @@ class TmBot(object):
          data1..n = individual data fields, as appropriate for each event type.
       '''
       now = int(time())
-      fileName = self.settings.logFile
+      fileName = self.settings.logFilePath
       if not fileName:
          fileName = "log.txt"
-         self.settings.fileName = fileName
+         self.settings.logFilePath = fileName
       with open(fileName, "a+t") as f:
          f.write("{0}\t{1}\t".format(now, eventType))
          f.write("\t".join(dataList))
@@ -224,6 +224,8 @@ class TmBot(object):
          Any time we're mentioned in someone's tweet, we favorite it. If they ask 
          us a question, we reply to them.
       '''
+      if self.debug:
+         print "last mention ID = {0}".format(self.settings.lastMentionId)
       mentions = self.twitter.get_mentions_timeline(since_id=self.settings.lastMentionId)
       if mentions:
          # Remember the most recent tweet id, which will be the one at index zero.
@@ -239,6 +241,7 @@ class TmBot(object):
             else:
                self.twitter.create_favorite(id=theId)
             
+            eventType = 'Mention'
             # if they asked us a question, reply to them.   
             if "?" in text:
                # create a reply to them. 
@@ -250,6 +253,9 @@ class TmBot(object):
                # in the body of the tweet.
                replyMsg = "@{0} {1}".format(who, msg)
                self.tweets.append({'status': replyMsg, "in_reply_to_status_id" : theId})
+               eventType = "Reply"
+
+            self.Log(eventType, [who])
 
 
    def Run(self):
