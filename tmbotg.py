@@ -224,8 +224,6 @@ class TmBot(object):
          Any time we're mentioned in someone's tweet, we favorite it. If they ask 
          us a question, we reply to them.
       '''
-      if self.debug:
-         print "last mention ID = {0}".format(self.settings.lastMentionId)
       mentions = self.twitter.get_mentions_timeline(since_id=self.settings.lastMentionId)
       if mentions:
          # Remember the most recent tweet id, which will be the one at index zero.
