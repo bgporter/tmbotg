@@ -3,6 +3,7 @@
 # 
 
 
+from datetime import datetime
 from glob import glob
 from pprint import pprint
 from random import choice
@@ -141,9 +142,19 @@ class TmBot(object):
       self.tweets = []
 
 
-      self.settings = Settings(os.path.join(self.botPath, "tmbotg.json"))
+      self.settings = Settings(self.GetPath("tmbotg.json"))
       s = self.settings
       self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
+
+   def GetPath(self, path):
+      '''
+         Put all the relative path calculations in one place. If we're given a path
+         that has a leading slash, we treat it as absolute and do nothing. Otherwise, 
+         we treat it as a relative path based on the botPath setting in our config file.
+      '''
+      if not path.startswith(os.sep):
+         path = os.path.join(self.botPath, path)
+      return path
 
    def Log(self, eventType, dataList):
       '''
@@ -153,13 +164,20 @@ class TmBot(object):
          timestamp = integer seconds since the UNIX epoch
          event = string identifying the event
          data1..n = individual data fields, as appropriate for each event type.
+         To avoid maintenance issues w/r/t enormous log files, the log filename 
+         that's stored in the settings file is passed through datetime.strftime()
+         so we can expand any format codes found there against the current date/time
+         and create e.g. a monthly log file.
       '''
       now = int(time())
+      today = datetime.fromtimestamp(now)
       fileName = self.settings.logFilePath
       if not fileName:
-         fileName = "log.txt"
+         fileName = "%Y-%m.txt"
          self.settings.logFilePath = fileName
-      with open(fileName, "a+t") as f:
+      path = self.GetPath(fileName)
+      path = today.strftime(path)
+      with open(path, "a+t") as f:
          f.write("{0}\t{1}\t".format(now, eventType))
          f.write("\t".join(dataList))
          f.write("\n")
@@ -282,7 +300,7 @@ class TmBot(object):
       if 0 == count:
          raise NoLyricError()
 
-      files = glob(os.path.join(self.botPath, self.settings.lyricFilePath))
+      files = glob(self.GetPath(self.settings.lyricFilePath))
       if not files:
          # there aren't any lyrics files to use -- tell them to  GetLyrics
          raise LyricsFileError("Please run GetLyrics.py to fetch lyric data first.")
