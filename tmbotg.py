@@ -119,6 +119,29 @@ def ParseFilename(filePath):
    return tuple(base.split("_"))
 
 
+def TrimTweetToFit(listOfStrings, maxLength):
+   '''
+      Given a list of strings (one string per line), trim that list (usually from
+      the back, but occasionally from the front to keep things interesting) until 
+      it's less than or equal to the maxLength parameter.
+   '''
+   length = 0
+   for line in listOfStrings:
+      length += len(line) + 1
+   length = length - 1
+
+   if length <= maxLength:
+      return "\n".join(listOfStrings)
+   else:
+      if 1 == len(listOfStrings):
+         # we can't trim any more because there's only one line left. Give up.
+         return ""
+      else:
+         popIndex = choice([-1] * 8 + [0] * 2)
+         listOfStrings.pop(popIndex)
+         return TrimTweetToFit(listOfStrings, maxLength)
+
+
 class NoLyricError(Exception):
    pass
 
@@ -312,16 +335,9 @@ class TmBot(object):
       with open(fName, "rt") as f:
          data = f.read().decode("utf-8")
          stanzas = data.split("\n\n")
-         stanza = choice(stanzas).strip()
-         while len(stanza) > maxLen:
-            # Keep trimming off lines from the bottom until either:
-            # 1. There's only a single line of text left and we can't trim any more
-            # 2. We have text that's <= the current maxLen.
-            trimmed = stanza.rsplit("\n", 1)[0]
-            if stanza == trimmed:
-               stanza = ""
-               break
-            stanza = trimmed
+         stanza = choice(stanzas).strip().split('\n')
+         stanza = TrimTweetToFit(stanza, maxLen)
+
       if stanza:
          return (album, track, stanza)
       else:
