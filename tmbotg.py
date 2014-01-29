@@ -26,6 +26,7 @@ kDefaultConfigDict = {
    "lyricFilePath"      : "*.lyric",
    "tweetProbability"   : 24.0 / 1440,
    "minimumSpacing"     : 60*60,
+   "logFilePath"        : "%Y-%m.txt"
 }
 
 kSettingsFileErrorMsg = '''\
