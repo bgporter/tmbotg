@@ -227,9 +227,21 @@ class TmBot(object):
 
       '''
       doUpdate = False
-      if random() < self.settings.tweetProbability:
-         last = self.settings.lastUpdate or 0
-         now = time()
+      last = self.settings.lastUpdate or 0
+      now = int(time())
+      lastTweetAge = now - last
+
+      maxSpace = self.settings.maximumSpacing
+      if not maxSpace:
+         # default to creating a tweet at *least* every 4 hours.
+         maxSpace = 4 * 60 * 60
+         self.settings.maximumSpacing = maxSpace
+
+      if lastTweetAge > maxSpace:
+         # been too long since the last tweet. Make a new one for our fans!
+         doUpdate = True
+
+      elif random() < self.settings.tweetProbability:
          # Make sure that we're not tweeting too frequently. Default is to enforce 
          # a 1-hour gap between tweets (configurable using the 'minimumSpacing' key
          # in the config file, providing a number of minutes we must remain silent.)
@@ -239,8 +251,8 @@ class TmBot(object):
             requiredSpace = 60*60
             self.settings.minimumSpacing = requiredSpace
 
-         if now - last > requiredSpace:
-            # Our last tweet wasn't long enough ago. Stay quiet this time.
+         if lastTweetAge > requiredSpace:
+            # Our last tweet was a while ago, let's make another one.
             doUpdate = True
       if self.force:
          doUpdate = True
