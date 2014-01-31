@@ -254,10 +254,8 @@ class TmBot(object):
          if lastTweetAge > requiredSpace:
             # Our last tweet was a while ago, let's make another one.
             doUpdate = True
-      if self.force:
-         doUpdate = True
 
-      if doUpdate:
+      if doUpdate or self.force:
          try:
             # Occasionally force some short(er) updates so they're not all
             # paragraph-length.. (these values arbitrarily chosen)
