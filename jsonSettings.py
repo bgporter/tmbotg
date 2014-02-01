@@ -1,0 +1,68 @@
+'''
+   jsonSettings.py -- wrapper around a text file containing json key/value pairs
+   that we can access as either a dict
+   settings['key']
+   or an object
+   settings.key
+
+
+'''
+
+import json
+
+class JsonSettings(object):
+   '''
+      A class to persist our app's settings in a json file. We can access any 
+      of the of the values in the settings either as
+      mySettings.attribute 
+      or 
+      mySettings['attribute']
+
+      We separate
+   '''
+   def __init__(self, settingsFile):
+      try:
+         self._settingsFile = settingsFile
+         with open(settingsFile, "rt") as f:
+            self._settings = json.loads(f.read())
+            self._isDirty = False
+      except IOError:
+         # can't open the settings file. Warn the user & create a blank file.
+         # They'll need to edit that file and re-start this program.
+         self._settings = kDefaultConfigDict.copy()
+         self._isDirty = True
+         self.Write()
+         raise SettingsFileError(kSettingsFileErrorMsg.format(settingsFile))
+
+   def Write(self):
+      try:
+         if self._isDirty: 
+            with open(self._settingsFile, "wt") as f:
+               f.write(json.dumps(self._settings, indent=3, 
+                  separators=(',', ': ') ))
+            self._isDirty = False
+      except IOError, e:
+         print "Error writing settings file: {0}".format(str(e))
+         raise SettingsFileError()
+
+   def __getitem__(self, key):
+      ''' get an item from settings as if this were a dict. 
+         If there's nothing at that key, returns None instead of 
+         throwing an exception.
+      '''
+      return self._settings.get(key, None)
+
+   def __getattr__(self, key):
+      ''' ...or, get a thing as an attribute using dot notation 
+         If there's nothing at that key, returns None instead of 
+         throwing an exception.
+         '''
+      return self._settings.get(key, None)
+
+   def __setattr__(self, key, val):
+      if not key.startswith('_'):
+         self._settings[key] = val
+         self._isDirty = True
+      else:
+         # we need to prevent recursion!
+         super(JsonSettings, self).__setattr__(key, val)   
