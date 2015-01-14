@@ -23,6 +23,7 @@
 
 
 from datetime import datetime
+from datetime import date
 from glob import glob
 from pprint import pprint
 from random import choice
@@ -34,7 +35,7 @@ from twython import Twython
 import os.path
 
 from jsonSettings import JsonSettings as Settings
-
+import jsonSettings
 
 
 # if we're started without a config file, we create a default/empty 
@@ -47,6 +48,7 @@ kDefaultConfigDict = {
    "lyricFilePath"      : "*.lyric",
    "tweetProbability"   : 24.0 / 1440,
    "minimumSpacing"     : 60*60,
+   "minimumDaySpacing"  : 30,
    "logFilePath"        : "%Y-%m.txt"
 }
 
@@ -57,12 +59,7 @@ setting as is appropriate.
 '''
 
 
-class SettingsFileError(Exception):
-   def __init__(self, msg):
-      self.msg = msg
 
-   def __str__(self):
-      return self.msg
 
 class LyricsFileError(Exception):
    def __init__(self, msg):
@@ -131,8 +128,8 @@ class TmBot(object):
       # probably 'in_reply-to_status_id' when we're replying to someone.)
       self.tweets = []
 
-
-      self.settings = Settings(self.GetPath("tmbotg.json"))
+      self.history = Settings(self.GetPath("tmbotg_history.json"))
+      self.settings = Settings(self.GetPath("tmbotg.json"), kDefaultConfigDict)
       s = self.settings
       self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
 
@@ -180,6 +177,32 @@ class TmBot(object):
             print msg['status'].encode("UTF-8")
          else:
             self.twitter.update_status(**msg)
+
+
+   def CheckDaySpacing(self, album, title):
+      ''' There are a few tunes that seem to come up *way* too often. We'll maintain 
+         a new history file that just tracks the last time that any given (album, track) tuple
+         is used (and maybe this should just be title?). If we're okay to use this song, return 
+         true. 
+      '''
+      key = "{0}_{1}".format(album, title)
+      retval = True
+      lastUsed = self.history[key]
+      if lastUsed:
+         minimumSpace = self.settings.minimumDaySpacing
+         if not minimumSpace:
+            minimumSpace = 30
+            self.settings.minimumDaySpacing = minimumSpace
+         today = date.today()
+         last = date.fromordinal(lastUsed)
+         retval = (today - last).days > minimumSpace
+      return retval
+
+
+   def LogHistory(self, album, title):
+      today = date.today()
+      key = "{0}_{1}".format(album, title)
+      self.history[key] = today.toordinal()
 
    def CreateUpdate(self):
       '''
@@ -281,6 +304,7 @@ class TmBot(object):
 
       # if anything we did changed the settings, make sure those changes get written out.
       self.settings.Write()
+      self.history.Write()
 
 
    def GetLyric(self, maxLen, count=10):
@@ -307,6 +331,9 @@ class TmBot(object):
 
       fName = choice(files)
       album, track = ParseFilename(fName)
+      # Check to see if it's been long enough since we tweeted from this song:
+      if not self.CheckDaySpacing(album, track):
+         return self.GetLyric(maxLen, count-1)
       stanza = ""
       with open(fName, "rt") as f:
          data = f.read().decode("utf-8")
@@ -315,6 +342,7 @@ class TmBot(object):
          stanza = TrimTweetToFit(stanza, maxLen)
 
       if stanza:
+         self.LogHistory(album, track)
          return (album, track, stanza)
       else:
          return self.GetLyric(maxLen, count-1)
@@ -340,7 +368,7 @@ if __name__ == "__main__":
    try:
       bot = TmBot(argDict)
       bot.Run()
-   except (SettingsFileError, LyricsFileError) as e:
+   except (jsonSettings.SettingsFileError, LyricsFileError) as e:
       # !!! TODO: Write this into a log file (also)
       print str(e)
 
