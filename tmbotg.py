@@ -303,6 +303,7 @@ class TmBot(object):
       self.SendTweets()
 
       # if anything we did changed the settings, make sure those changes get written out.
+      self.settings.lastExecuted = str(datetime.now())
       self.settings.Write()
       self.history.Write()
 
