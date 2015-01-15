@@ -370,5 +370,6 @@ if __name__ == "__main__":
       bot.Run()
    except (jsonSettings.SettingsFileError, LyricsFileError) as e:
       # !!! TODO: Write this into a log file (also)
+      bot.Log("ERROR", [str(e)])
       print str(e)
 
