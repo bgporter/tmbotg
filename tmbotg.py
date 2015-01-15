@@ -195,7 +195,11 @@ class TmBot(object):
             self.settings.minimumDaySpacing = minimumSpace
          today = date.today()
          last = date.fromordinal(lastUsed)
-         retval = (today - last).days > minimumSpace
+         # how many days has it been since we last tweeted this album/track?
+         daysAgo = (today - last).days
+         retval =  daysAgo > minimumSpace
+         if not retval:
+            self.Log("TooSoon", [album, title, "used {0} days ago".format(daysAgo)])
       return retval
 
 
