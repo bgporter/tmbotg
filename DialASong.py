@@ -30,14 +30,16 @@
 '''
 
 import sys
+import urllib
 from GetLyrics import ProcessTrack
 
 kAlbum = "Dial a Song"
 kUrlTemplate = "http://tmbw.net/wiki/Lyrics:{0}"
 
 
-def Underscore(s):
+def Scrub(s):
    ''' spaces in the lyric URL pattern are replaced with underscores '''
+   s = urllib.quote(s)
    return s.replace(' ', '_')
 
 if __name__ == "__main__":
