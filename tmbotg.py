@@ -31,6 +31,7 @@ from random import random
 from time import time
 from twython import Twython
 from twython import TwythonStreamer
+from twython.exceptions import TwythonError
 
 
 import os.path
@@ -84,7 +85,7 @@ class BotStreamer(TwythonStreamer):
             # Example -- we may want to extend the replies to questions so that we also 
             # reply to questions in quote tweets as well.
             with open("{0}.fav".format(tweetId), "wt") as f:
-               f.write(".")
+               f.write("{0}".format(tweetId))
 
 
    def on_error(self, status_code, data):
@@ -328,14 +329,22 @@ class TmBot(object):
 
 
    def HandleQuotes(self):
+      ''' The streaming version of the bot may have detected some quoted tweets
+         that we want to respond to. Look for files with the .fav extension, and 
+         if we find any, handle them. 
+      '''
       faves = glob("*.fav")
-      for f in faves:
-         tweetId, ext = os.path.splitext(f)
-         if self.debug:
-            print "Faving quoted tweet {0}".format(tweetId)
-         else:
-            self.twitter.create_favorite(id=tweetId)
-         os.remove(f)
+      for fileName in faves:
+         with open(fileName, "rt") as f:
+            tweetId = f.readline().strip()
+            if self.debug:
+               print "Faving quoted tweet {0}".format(tweetId)
+            else:
+               try:
+                  self.twitter.create_favorite(id=tweetId)
+               except TwythonError as e:
+                  self.Log("EXCEPTION", str(e))
+         os.remove(fileName)
 
 
    def Run(self):
@@ -356,7 +365,7 @@ class TmBot(object):
          self.HandleQuotes()
          self.SendTweets()
 
-         # if anything we did changed the settings, make sure those changes get written out.
+         # if anything we dpsid changed the settings, make sure those changes get written out.
          self.settings.lastExecuted = str(datetime.now())
          self.settings.Write()
          self.history.Write()
