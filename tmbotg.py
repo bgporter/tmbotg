@@ -72,6 +72,10 @@ class LyricsFileError(Exception):
 
 
 class BotStreamer(TwythonStreamer):
+
+   def SetOutputPath(self, path):
+      self.path = path
+
    def on_success(self, data):
       # for now, all we're interested in handling are quoted tweets. 
       if 'event' in data:
@@ -84,7 +88,7 @@ class BotStreamer(TwythonStreamer):
             # more interesting data into the file to be parsed out later.
             # Example -- we may want to extend the replies to questions so that we also 
             # reply to questions in quote tweets as well.
-            with open("{0}.fav".format(tweetId), "wt") as f:
+            with open(os.path.join(self.path, "{0}.fav".format(tweetId)), "wt") as f:
                f.write("{0}".format(tweetId))
 
 
@@ -156,6 +160,7 @@ class TmBot(object):
       s = self.settings
       if self.stream:
          self.twitter = BotStreamer(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
+         self.twitter.SetOutputPath(self.botPath)
       else:
          self.twitter = Twython(s.appKey, s.appSecret, s.accessToken, s.accessTokenSecret)
 
