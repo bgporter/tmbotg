@@ -333,7 +333,7 @@ class TmBot(object):
          that we want to respond to. Look for files with the .fav extension, and 
          if we find any, handle them. 
       '''
-      faves = glob("*.fav")
+      faves = glob(self.GetPath("*.fav"))
       for fileName in faves:
          with open(fileName, "rt") as f:
             tweetId = f.readline().strip()
