@@ -7,6 +7,11 @@ songs.
 <blockquote class="twitter-tweet" lang="en"><p>Minimum Wage!  HYAH!</p>&mdash; tmbotg (@tmbotg) <a href="https://twitter.com/tmbotg/statuses/421454171020492800">January 10, 2014</a></blockquote>
 <script async src="//platform.twitter.com/widgets.js" charset="utf-8"></script>
 
+### NOTE 
+
+If you'd like to use this as the basis for a twitterbot of your own, please check out the related [Nanobot](https://github.com/bgporter/nanobot) framework that's extracted from this project and should make your work easier. 
+
+
 ### Colophon & Thanks
 
 - Obviously, thanks to They Might Be Giants, both for writing this stuff in the first place, and (as importantly for this project) not being all cease-and-desisty to this kind of fan project. This project is not officially affiliated with the band.
