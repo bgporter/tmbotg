@@ -286,7 +286,7 @@ class TmBot(object):
          try:
             # Occasionally force some short(er) updates so they're not all
             # paragraph-length.. (these values arbitrarily chosen)
-            maxLen = choice([120, 120, 120, 120, 100, 100, 100, 80, 80, 40])
+            maxLen = choice([210, 120, 120, 120, 120, 100, 100, 100, 80, 80, 40])
             album, track, msg = self.GetLyric(maxLen)
             self.tweets.append({'status' : msg})
             self.settings.lastUpdate = int(time())
