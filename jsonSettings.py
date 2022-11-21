@@ -25,8 +25,6 @@
    settings['key']
    or an object
    settings.key
-
-
 '''
 
 import json
@@ -38,6 +36,11 @@ class SettingsFileError(Exception):
    def __str__(self):
       return self.msg
 
+kSettingsFileErrorMsg = '''\
+There was no settings file found at {0}, so I just created an empty/default
+file for you. Please edit it, adding the correct/desired values for each
+setting as is appropriate.
+'''
 
 class JsonSettings(object):
    '''
@@ -57,7 +60,7 @@ class JsonSettings(object):
          with open(settingsFile, "rt") as f:
             self._settings = json.loads(f.read())
             self._isDirty = False
-      except IOError:
+      except FileNotFoundError:
          # can't open the settings file. Warn the user & create a blank file.
          # They'll need to edit that file and re-start this program.
          self._settings = defaultDict.copy()
@@ -72,8 +75,8 @@ class JsonSettings(object):
                f.write(json.dumps(self._settings, indent=3, 
                   separators=(',', ': ') ))
             self._isDirty = False
-      except IOError, e:
-         print "Error writing settings file: {0}".format(str(e))
+      except IOError as e:
+         print ("Error writing settings file: {0}".format(str(e)))
          raise SettingsFileError()
 
    def __getitem__(self, key):

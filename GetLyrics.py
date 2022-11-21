@@ -21,8 +21,8 @@
 # THE SOFTWARE.
 
 from bs4 import BeautifulSoup
-from urlparse import urljoin
-from urllib import unquote
+from urllib.parse import urljoin
+from urllib.parse import unquote
 from os.path import join
 import requests
 
@@ -32,15 +32,19 @@ kOutputDir = "data"
 
 
 def Log(s):
-   print s
+   print (s)
 
 def Scrub(s):
    ''' Do whatever cleanup we need to do to turn a string (possibly with spaces
       in it) to a space-less name more usable as a file name 
    '''
    kIllegalChars = "!@#$%^&*()/\\{}[];:,?~`|"
+   table = {}
+   for ch in kIllegalChars:
+    table[ch] = ''
+
    s = s.strip()
-   s = s.translate(None, kIllegalChars)
+   s = s.translate(table)
    return s.replace(" ", '-')
 
 
@@ -99,24 +103,25 @@ def ProcessAlbum(albumName, url):
                trackName = cells[1].a.text
                lyricUrl = cells[3].a['href']
                ProcessTrack(albumName, trackName, lyricUrl)
-            except Exception, e:
-               print str(e)
+            except Exception as e:
+               print (str(e))
 
 
 
 def ProcessTrack(albumName, trackName, url):
-   '''
-      url points at a lyrics page. The lyrics are inside a <div> that has the 
-      class 'lyrics-table'.
-   '''
-   soup = GetSoup(url)
-   lyrics = soup.find(attrs={"class": "lyrics-table"})
-   stanzas = lyrics.find_all("p")
-   fileName = join(kOutputDir, MakeFilename(albumName, trackName))
-   Log("  {}".format(fileName))
-   with open(fileName, "wt") as f:
-      lyric = u"\n".join([stanza.text for stanza in stanzas]).encode("UTF-8")
-      f.write(lyric)
+    '''
+        url points at a lyrics page. The lyrics are inside a <div> that has the 
+        class 'lyrics-table'.
+    '''
+    soup = GetSoup(url)
+    lyrics = soup.find(attrs={"class": "lyrics-table"})
+    stanzas = lyrics.find_all("p")
+    fileName = join(kOutputDir, MakeFilename(albumName, trackName))
+    Log("  {}".format(fileName))
+    with open(fileName, "wt") as f:
+        #   lyric = u"\n".join([stanza.text for stanza in stanzas]).encode("UTF-8")
+        lyric = u"\n".join([stanza.text for stanza in stanzas])
+        f.write(lyric)
 
 if __name__ == "__main__":
    ProcessDiscography("wiki/Discography/Studio_Albums")
