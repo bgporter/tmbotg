@@ -46,7 +46,7 @@ def Scrub(s):
     trans = str.maketrans(table)
 
     s = s.strip()
-    s = s.translate(tr)
+    s = s.translate(trans)
     return s.replace(" ", '-')
 
 
