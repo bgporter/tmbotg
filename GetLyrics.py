@@ -35,17 +35,19 @@ def Log(s):
    print (s)
 
 def Scrub(s):
-   ''' Do whatever cleanup we need to do to turn a string (possibly with spaces
-      in it) to a space-less name more usable as a file name 
-   '''
-   kIllegalChars = "!@#$%^&*()/\\{}[];:,?~`|"
-   table = {}
-   for ch in kIllegalChars:
-    table[ch] = ''
+    ''' Do whatever cleanup we need to do to turn a string (possibly with spaces
+        in it) to a space-less name more usable as a file name 
+    '''
+    kIllegalChars = "!@#$%^&*()/\\{}[];:,?~`|"
+    table = {}
+    for ch in kIllegalChars:
+        table[ch] = ''
 
-   s = s.strip()
-   s = s.translate(table)
-   return s.replace(" ", '-')
+    trans = str.maketrans(table)
+
+    s = s.strip()
+    s = s.translate(tr)
+    return s.replace(" ", '-')
 
 
 def MakeFilename(album, track):
