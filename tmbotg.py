@@ -30,6 +30,7 @@ from random import random
 from time import time
 
 from mastodon import Mastodon
+from atproto import Client
 
 
 import os.path
@@ -46,6 +47,8 @@ kDefaultConfigDict = {
    "password"           : "!!! edit !!! ", 
    "api_base"           : "https://botsin.space",
    "credentials"        : "tmbotg_clientcred.secret",
+   "bluesky_handle"     : "!!! edit !!!",
+   "bluesky_password"   : "!!! edit !!!",
    "lyricFilePath"      : "*.lyric",
    "tweetProbability"   : 24.0 / 1440,
    "minimumSpacing"     : 60*60,
@@ -109,10 +112,17 @@ class TmBot(object):
 
     def __init__(self, argDict=None):
         if not argDict:
-            argDict = { 'debug' : False, "force": False, 'stream': False, 'botPath' : "."}
+            argDict = { 'debug' : False, "force": False, 'stream': False, 'botPath' : ".", 'platforms': ['mastodon']}
         # update this object's internal dict with the dict of args that was passed
         # in so we can access those values as attributes.
         self.__dict__.update(argDict)
+
+        # Normalize platforms to a list if it's a string
+        if isinstance(self.platforms, str):
+            if self.platforms == 'both':
+                self.platforms = ['mastodon', 'bluesky']
+            else:
+                self.platforms = [self.platforms]
 
         # we build a list of dicts containing status (and whatever other args
         # we may need to pass to the update_status function as we exit, most
@@ -123,14 +133,23 @@ class TmBot(object):
         self.settings = Settings(self.GetPath("tmbotg.json"), kDefaultConfigDict)
         s = self.settings
 
-        # if the app credentials file doesn't exist, create that first.
-        credFile = pathlib.Path(s.credentials)
-        if (not credFile.exists()):
-            # register the app; this only needs to be done once. 
-            Mastodon.create_app("tmbotg3000", api_base_url=s.api_base, to_file=s.credentials)
+        # Initialize Mastodon if requested
+        self.mastodon = None
+        if 'mastodon' in self.platforms:
+            # if the app credentials file doesn't exist, create that first.
+            credFile = pathlib.Path(s.credentials)
+            if (not credFile.exists()):
+                # register the app; this only needs to be done once. 
+                Mastodon.create_app("tmbotg3000", api_base_url=s.api_base, to_file=s.credentials)
 
-        self.mastodon = Mastodon(client_id=s.credentials, api_base_url=s.api_base)
-        self.mastodon.log_in(s.email, s.password)
+            self.mastodon = Mastodon(client_id=s.credentials, api_base_url=s.api_base)
+            self.mastodon.log_in(s.email, s.password)
+
+        # Initialize Bluesky if requested
+        self.bluesky_client = None
+        if 'bluesky' in self.platforms:
+            self.bluesky_client = Client()
+            self.bluesky_client.login(login=s.bluesky_handle, password=s.bluesky_password)
 
     def GetPath(self, path):
         '''
@@ -168,19 +187,35 @@ class TmBot(object):
             f.write("\t".join(dataList))
             f.write("\n")
 
+    def SendToBluesky(self, status_text):
+        ''' Post a status update to Bluesky
+        '''
+        try:
+            self.bluesky_client.send_post(text=status_text)
+        except Exception as e:
+            self.Log("BLUESKY_EXCEPTION", [str(e), status_text])
+
     def SendTweets(self):
         ''' send each of the status updates that are collected in self.tweets
         '''
         for msg in self.tweets:
+            status_text = msg['status']
+            
             if self.debug:
                 # print (msg['status'].encode("UTF-8"))
-                print (msg['status'])
+                print("Would post to platforms:", self.platforms)
+                print(status_text)
             else:
-                self.mastodon.status_post(msg['status'])
-                # try:
-                #     self.twitter.update_status(**msg)
-                # except TwythonError, e:
-                #     self.Log("EXCEPTION", [str(e), msg['status'].encode("UTF-8")])
+                # Post to Mastodon if enabled
+                if 'mastodon' in self.platforms and self.mastodon:
+                    try:
+                        self.mastodon.status_post(status_text)
+                    except Exception as e:
+                        self.Log("MASTODON_EXCEPTION", [str(e), status_text])
+                
+                # Post to Bluesky if enabled
+                if 'bluesky' in self.platforms and self.bluesky_client:
+                    self.SendToBluesky(status_text)
 
 
     def CheckDaySpacing(self, album, title):
@@ -370,10 +405,19 @@ if __name__ == "__main__":
       help="print to stdout instead of tweeting")
    parser.add_argument("--force", action='store_true',
       help="force operation now instead of waiting for randomness")
+   parser.add_argument("--platform", choices=['mastodon', 'bluesky', 'both'],
+      default='mastodon',
+      help="platform to post to: mastodon, bluesky, or both (default: mastodon)")
 
    args = parser.parse_args()
    # convert the object returned from parse_args() to a plain old dict
    argDict = vars(args)
+   # Normalize platform to platforms list
+   if argDict['platform'] == 'both':
+       argDict['platforms'] = ['mastodon', 'bluesky']
+   else:
+       argDict['platforms'] = [argDict['platform']]
+   del argDict['platform']  # Remove the singular form
 
 
    # Find the path where this source file is being loaded from -- we use
