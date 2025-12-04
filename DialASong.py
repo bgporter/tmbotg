@@ -1,4 +1,4 @@
-#! /usr/bin/env/python
+#! /usr/bin/env python3
 
 # Copyright (c) 2015 Brett g Porter
 # 
@@ -30,7 +30,7 @@
 '''
 
 import sys
-import urllib
+from urllib.parse import quote
 from GetLyrics import ProcessTrack
 
 kAlbum = "Dial a Song"
@@ -39,7 +39,7 @@ kUrlTemplate = "http://tmbw.net/wiki/Lyrics:{0}"
 
 def Scrub(s):
    ''' spaces in the lyric URL pattern are replaced with underscores '''
-   s = urllib.quote(s)
+   s = quote(s)
    return s.replace(' ', '_')
 
 if __name__ == "__main__":

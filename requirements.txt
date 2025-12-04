@@ -2,7 +2,7 @@ atproto==0.0.64
 beautifulsoup4==4.11.1
 blurhash==1.1.4
 certifi==2022.9.24
-charset-normalizer==2.1.1
+charset-normalizer>=2.0.0,<3.0.0
 decorator==5.1.1
 idna==3.4
 Mastodon.py==1.6.3
